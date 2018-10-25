@@ -1,7 +1,7 @@
 # Steganography Toolkit
 
 This project is a Docker image useful for solving Steganography challenges as those you can find at CTF platforms like [hackthebox.eu](https://www.hackthebox.eu/).
-The image comes preinstalled with many popular (see list [below](#tools)) and several screening scripts you can use check simple things (for instance, run `check_jpg.sh image.jpg` to get a report for this JPG file).
+The image comes pre-installed with many popular tools (see list [below](#tools)) and several screening scripts you can use check simple things (for instance, run `check_jpg.sh image.jpg` to get a report for a JPG file).
 
 [![Docker build status](https://img.shields.io/docker/build/mariobehling/loklak.svg)](https://hub.docker.com/r/dominicbreuker/stego-toolkit/)
 
@@ -15,7 +15,7 @@ You will be dropped into a bash shell inside the container.
 It will have the `data` folder mounted, into which you can put the files to analyze.
 
 If you don't use the scripts, follow these steps:
-1. Build image (`docker build -t <image_name> .`) or pull from Docker hub (`docker pull dominicbreuker/stego`)
+1. Build image (`docker build -t <image_name> .`) or pull from Docker hub (`docker pull dominicbreuker/stego-toolkit`)
 2. Start a container with your files mounted to the folder `/data` (`docker run -it <image_name> -v /local/folder/with/data:/data /bin/bash`)
 3. Use CLI tools and screening scripts on your files: e.g., run `check_jpg.sh image.jpg` to create a quick report, or run `brute_jpg.sh image.jpg wordlist.txt` to try extracting hidden data with various tools and passwords
 4. If you want to run GUI tools use one of these two ways:
@@ -100,6 +100,7 @@ Some tools are supported by the brute force scripts available in this Docker ima
 | [Steghide](http://steghide.sourceforge.net/) | Images (JPG, BMP) and Audio (WAV, AU) | Versatile and mature tool to encrypt and hide data. | `steghide embed -f -ef secret.txt -cf cover.jpg -p password -sf stego.jpg` | `steghide extract -sf stego.jpg -p password -xf output.txt`
 | [cloackedpixel](https://github.com/livz/cloacked-pixel) | Images (PNG) | LSB stego tool for images | `cloackedpixel hide cover.jpg secret.txt password` creates `cover.jpg-stego.png` | `cloackedpixel extract cover.jpg-stego.png output.txt password`
 | [LSBSteg](https://github.com/RobinDavid/LSB-Steganography) | Images (PNG, BMP, ...) in uncompressed formats | Simple LSB tools with very nice and readable Python code | `LSBSteg encode -i cover.png -o stego.png -f secret.txt` | `LSBSteg decode -i stego.png -o output.txt` |
+| [f5](https://github.com/jackfengji/f5-steganography) | Images (JPG) | F5 Steganographic Algorithm with detailed info on the process | `f5 -t e -i cover.jpg -o stego.jpg -d 'secret message'` | `f5 -t x -i stego.jpg 1> output.txt` |
 
 
 ### Steganography GUI tools
@@ -116,7 +117,7 @@ Many different ways are possible (e.g., [mount UNIX sockets](https://medium.com/
 |Tool          |File types                |Description       |How to start    |
 |--------------|--------------------------|------------------|----------------|
 | [Steg](http://www.fabionet.org/) | Images (JPG, TIFF, PNG, BMP) | Handles many file types and implements different methods | `steg` |
-| [Steganabara](http://www.caesum.com/handbook/stego.htm) (The [original link](http://www.freewebs.com/quangntenemy/steganabara/index.html) is broken) | Images (???) | Interactively transform images until you find somethinf | `steganabara`|
+| [Steganabara](http://www.caesum.com/handbook/stego.htm) (The [original link](http://www.freewebs.com/quangntenemy/steganabara/index.html) is broken) | Images (???) | Interactively transform images until you find something | `steganabara`|
 | [Stegsolve](http://www.caesum.com/handbook/stego.htm) | Images (???) | Interactively transform images, view color schemes separately, ... | `stegsolve` |
 | [SonicVisualiser](http://www.sonicvisualiser.org/) | Audio (???) | Visualizing audio files in waveform, display spectrograms, ... | `sonic-visualiser` |
 | [Stegosuite](https://stegosuite.org/) | Images (JPG, GIF, BMP) | Can encrypt and hide data in images. Actively developed. | `stegosuite` |
@@ -136,7 +137,7 @@ For each file type, there are two kinds of scripts:
 - `XXX_check.sh <stego-file>`: runs basic screening tools and creates a report (+ possibly a directory with reports in files)
 - `XXX_brute.sh <stego-file> <wordlist>`: tries to extract a hidden message from a stego file with various tools using a wordlist (`cewl`, `john` and `crunch` are installed to generate lists - keep them small).
 
-The following filetypes are supported:
+The following file types are supported:
 - JPG: `check_jpg.h` and `brute_jpg.sh` (brute running `steghide`, `outguess`, `outguess-0.13`, `stegbreak`, `stegoveritas.py -bruteLSB`)
 - PNG: `check_png.h` and `brute_png.sh` (brute running `openstego` and `stegoveritas.py -bruteLSB`)
 
@@ -152,7 +153,7 @@ you do not know exactly.
 
 For these cases, several tools to generate wordlists are included:
 - [john](http://www.openwall.com/john/): the community enhanced version of John the Ripper can expand your wordlists. Create a base wordlist with a few candidate passwords and use `john` to create many variants of them. Use `john -wordlist:/path/to/your/wordlist -rules:Single -stdout > /path/to/expanded/wordlist` to apply extensive rules (~x1000) `john -wordlist:/path/to/your/wordlist -rules:Wordlist -stdout > /path/to/expanded/wordlist` for a reduced ruleset (~x50).
-- [crunch](https://tools.kali.org/password-attacks/crunch): can generate small wordlists if you have a pattern in mind. For instance, if you know the passwords ends with 1984 and is 6 letters long, use `crunch 6 6 abcdefghijklmnopqrstuvwxyz -t @@1984` will generate the 26 * 26 = 676 passwords aa1984, ab1984, ... up to zz1984. The format is `crunch <min-length> <max-length> <charset> <options>` and we used the templating option. Check out `less /usr/share/crunch/charset.lst` to see the charsets crunch ships with.
+- [crunch](https://tools.kali.org/password-attacks/crunch): can generate small wordlists if you have a pattern in mind. For instance, if you know the passwords ends with 1984 and is 6 letters long, use `crunch 6 6 abcdefghijklmnopqrstuvwxyz -t @@1984` will generate the 26 * 26 = 676 passwords aa1984, ab1984, ... up to zz1984. The format is `crunch <min-length> <max-length> <charset> <options>` and we used the templating option. Check out `less /usr/share/crunch/charset.lst` to see the char sets crunch ships with.
 - [CeWL](https://digi.ninja/projects/cewl.php): can generate wordlists if you know a website is related to a password. For instance, run `cewl -d 0 -m 8 https://en.wikipedia.org/wiki/Donald_Trump` if you suspect a picture of Donald Trump contains an encrypted hidden message. The command scrapes the site and extracts strings at least 8 characters long.
 
 
@@ -217,7 +218,7 @@ start_vnc.sh
 
 This is a collection of useful Steganography links:
 - You must be able to spot codes. Check out this [cheat sheet](http://www.ericharshbarger.org/epp/code_sheet.pdf) from Eric Harshbarger, which contains many different codes.
-- Cheatsheet describing workflows, things to look for and common tools: [click](https://pequalsnp-team.github.io/cheatsheet/steganography-101)
+- Cheat sheet describing workflows, things to look for and common tools: [click](https://pequalsnp-team.github.io/cheatsheet/steganography-101)
 - Forensics CTF guide with lots of ideas for stego challenges: [click](https://trailofbits.github.io/ctf/forensics/)
 - File format descriptions as beautiful posters: [click](https://github.com/corkami/pics/blob/master/binary/README.md)
 
